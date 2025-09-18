@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'fixer' => [
+        'key'           => env('FIXER_API_KEY'),
+        'base_url'      => env('FIXER_BASE_URL', 'https://data.fixer.io/api'),
+        'base_currency' => env('FIXER_BASE_CURRENCY', 'EUR'),
+    ],
 ];
