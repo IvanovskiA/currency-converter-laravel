@@ -1,61 +1,215 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Currency Converter API (Laravel 11 + Sail + PostgreSQL)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API for currency conversion via [Fixer.io](https://fixer.io), with persistence in a PostgreSQL database and automated tests.
 
-## About Laravel
+## 🚀 Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-   [Laravel 11](https://laravel.com) + Sail (Docker)
+-   PostgreSQL
+-   Fixer.io API
+-   PHPUnit Feature Tests
+-   Database Seeders for demo data
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## ⚙️ Setup & Run
 
-## Learning Laravel
+### 1. Clone the project
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+git clone https://github.com/<your-account>/currency-converter-laravel.git
+cd currency-converter-laravel
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 2. Start Docker
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+./vendor/bin/sail up -d
+```
 
-## Laravel Sponsors
+### 3. Environment configuration
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Copy `.env.example` to `.env` and add your Fixer API Key:
 
-### Premium Partners
+```bash
+cp .env.example .env
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+In `.env`:
 
-## Contributing
+```env
+FIXER_API_KEY=your_fixer_key_here
+FIXER_BASE_URL=https://data.fixer.io/api
+FIXER_BASE_CURRENCY=EUR
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Database port
 
-## Code of Conduct
+By default, PostgreSQL is exposed on port 5432.  
+If you already have a local PostgreSQL running, you can override this by setting:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+````env
+FORWARD_DB_PORT=5433
 
-## Security Vulnerabilities
+### 4. Generate app key & run migrations
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate
+````
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🌱 Seeder (demo data)
+
+If you want sample data in the database right away:
+
+```bash
+./vendor/bin/sail artisan migrate:fresh --seed
+```
+
+This will insert 10 demo conversions.
+
+---
+
+## 📡 Endpoints
+
+### `POST /api/convert`
+
+Converts an amount from one currency to another and stores the result in the database.  
+**Headers:**  
+Key: `Content-Type`  
+Value: `application/json`
+
+**Body (JSON):**
+
+```json
+{ "from": "EUR", "to": "USD", "amount": 100 }
+```
+
+**Response:**
+
+```json
+{
+    "data": {
+        "id": 1,
+        "from": "EUR",
+        "to": "USD",
+        "amount": 100,
+        "rate": 1.085431,
+        "result": 108.54,
+        "created": "2025-01-01T12:34:56.000000Z"
+    }
+}
+```
+
+---
+
+### `GET /api/conversions?limit=20`
+
+Returns the latest `limit` conversions (default 20, max 100).
+
+**Response:**
+
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "from": "EUR",
+            "to": "USD",
+            "amount": 100,
+            "rate": 1.085431,
+            "result": 108.54,
+            "created": "2025-01-01T12:34:56.000000Z"
+        },
+        {
+            "id": 2,
+            "from": "USD",
+            "to": "MKD",
+            "amount": 50,
+            "rate": 61.5,
+            "result": 3075,
+            "created": "2025-01-01T12:40:00.000000Z"
+        }
+    ]
+}
+```
+
+---
+
+## 🛡 Error Handling
+
+All API routes return a unified JSON error format.
+
+**Example: Validation error**
+
+```json
+{
+    "errors": {
+        "amount": ["The amount field must be at least 0.01."]
+    }
+}
+```
+
+**Example: Server error**
+
+```json
+{
+    "error": {
+        "message": "Server error"
+    }
+}
+```
+
+---
+
+## ⏳ Rate Limiting
+
+-   `POST /api/convert` → 60 requests/minute
+-   `GET /api/conversions` → 30 requests/minute
+
+---
+
+## 🧪 Tests
+
+The project includes PHPUnit Feature tests for:
+
+-   Successful conversion and persistence
+-   Input validation
+-   Listing recent conversions
+
+### Test database
+
+Create a separate database for testing:
+
+```bash
+./vendor/bin/sail exec pgsql psql -U sail -c "CREATE DATABASE currency_converter_test;"
+```
+
+In `.env.testing`:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=pgsql
+DB_PORT=5432
+DB_DATABASE=currency_converter_test
+DB_USERNAME=sail
+DB_PASSWORD=password
+```
+
+### Run tests
+
+```bash
+./vendor/bin/sail test
+```
+
+---
+
+## 👨‍💻 Author
+
+Angel Ivanovski – [GitHub profile](https://github.com/IvanovskiA/)
+
+---
+
+✨ With a single step — `./vendor/bin/sail up -d` — your API is ready.
