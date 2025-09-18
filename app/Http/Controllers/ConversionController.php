@@ -40,4 +40,16 @@ class ConversionController extends Controller
             ]
         ], 200);
     }
+
+    public function index(): \Illuminate\Http\JsonResponse
+    {
+        $limit = (int) request('limit', 20);
+        $limit = $limit > 0 && $limit <= 100 ? $limit : 20;
+
+        $items = \App\Models\Conversion::orderByDesc('id')
+            ->limit($limit)
+            ->get(['id', 'from_currency as from', 'to_currency as to', 'amount', 'rate', 'result', 'created_at as created']);
+
+        return response()->json(['data' => $items]);
+    }
 }
