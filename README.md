@@ -193,6 +193,7 @@ In `.env.testing`:
 DB_CONNECTION=pgsql
 DB_HOST=pgsql
 DB_PORT=5432
+FORWARD_DB_PORT=5433
 DB_DATABASE=currency_converter_test
 DB_USERNAME=sail
 DB_PASSWORD=password
