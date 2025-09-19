@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 class ListConversionsTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     /** @test */
     public function lists_recent_conversions()
